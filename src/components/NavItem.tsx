@@ -9,6 +9,7 @@ import {
 // import { Link  } from "react-router-dom";
 import { Theme } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
+import TokenService from "../services/tokenService";
 
 
 interface NavItemProps {
@@ -29,11 +30,11 @@ const NavItem: React.FC<NavItemProps> = ({
   theme,
 }) => {
   // const location = useLocation();
-  console.log("pppp",path);
-  const isSelected = true;
-    // path === `${rolesConfig[localStorage.getItem('userRole') || ""].webPrefix}/`
-    //   ? location.pathname === path
-    //   : location.pathname.includes(path);
+  // console.log("pppp",path);
+  const isSelected = 
+    path === `${TokenService.getUserRole() || ""}/`
+      ? location.pathname === path
+      : location.pathname.includes(path);
 
   return (
     <ListItem disablePadding>

@@ -22,10 +22,10 @@ import NavItem from "./NavItem";
 // import { rolesConfig } from "../../rolesConfig";
 // import { useNavigate } from "react-router-dom";
 // import { useSelectedCourse } from "../../contexts/SelectedCourseContext";
+import TokenService from '../services/tokenService';
 interface MyDrawerProps {
   handleDrawerClose?: () => void;
-  // eslint-disable-next-line @typescript-esli nt/no-explicit-any
-  sidebardata: any;
+  sidebardata: unknown;
 }
 
 const MyDrawer = ({ handleDrawerClose, sidebardata }: MyDrawerProps) => {
@@ -46,6 +46,7 @@ const MyDrawer = ({ handleDrawerClose, sidebardata }: MyDrawerProps) => {
     // });
   };
 
+  const role = TokenService.getUserRole();
   return (
     <Box
       sx={{
@@ -81,12 +82,12 @@ const MyDrawer = ({ handleDrawerClose, sidebardata }: MyDrawerProps) => {
       <Divider sx={{ bgcolor: "#fff" }} />
       {/* Main Navigation */}
       <List sx={{ flexGrow: 1 }}>
-        {sidebardata.mainItems.map((item, index) => {
+        {sidebardata[role].map((item, index) => {
           return (
             <Box key={index}>
               <NavItem
                 // eslint-disable-next-line no-constant-binary-expression
-                path={`/${localStorage.getItem("userRole")}${item.path}` || ""}
+                path={`/${role}${item.path}` || ""}
                 title={item.title}
                 icon={item.icon}
               />

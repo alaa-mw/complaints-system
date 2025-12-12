@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,8 +13,6 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Menu,
-  MenuItem,
   CircularProgress,
   Alert,
   Card,
@@ -29,7 +26,6 @@ import {
 } from "@mui/material";
 import {
   Visibility,
-  MoreVert,
   Refresh,
   LocationOn,
   Description,
@@ -38,82 +34,39 @@ import {
   CalendarToday,
 } from "@mui/icons-material";
 import { Complaint } from "../interfaces/Complaint";
-import useFetchData from "../hooks/useFetchData";
-import usePatchData from "../hooks/usePatchData";
-import { useSnackbar } from "../contexts/SnackbarContext";
-import { STATUS_OPTIONS } from "../static/statusEnum";
-// import { useSnackbar } from "../contexts/SnackbarContext";
+import { getStatusColor } from "../utils/getStatusColor";
+import { formatDate } from "../utils/formatDate";
+import { useNavigate } from "react-router-dom";
 
-// Status options
-
-
-const ComplaintsTable: React.FC = () => {
-  
-  const { showSnackbar } = useSnackbar();
+interface ComplaintsTableProps {
+  complaints: Complaint[];
+  loading: boolean;
+  refetch?: () => void;
+}
+const ComplaintsTable = ({
+  complaints,
+  loading,
+  refetch,
+}: ComplaintsTableProps) => {
   const theme = useTheme();
-  
+
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // const [complaints, setComplaints] = useState<Complaint[]>([]);
-  // const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
-    null
-  );
-
-  const { data: complaints, isLoading: loading, refetch } = useFetchData<Complaint[]>(
-    "/complaints/my-entity-complaints"
-  );
-  const { mutate: changeStatus } = usePatchData(
-    `/complaints/change-status/${selectedComplaint?.id}`
-  );
-
-  const handleStatusChange = async (complaintId: number, newStatus: string) => {
-    setActionLoading(complaintId);
-    changeStatus(
-      {
-        status: newStatus,
-      },
-      {
-        onSuccess: (response) => {
-          refetch();
-          showSnackbar(response.message, "success");
-          console.log("response:", response);
-        },
-        onError: (error) => {
-          console.log("error:", error);
-        },
-      }
+  const ViewVersions = ({ complaintId }: { complaintId: number }) => {
+    const navigate = useNavigate();
+    return (
+      <Tooltip title="عرض التعديلات">
+        <IconButton
+          size="small"
+          color="primary"
+          onClick={() => navigate(`${complaintId}`)}
+        >
+          <Visibility />
+        </IconButton>
+      </Tooltip>
     );
-
-    setActionLoading(null);
-    setAnchorEl(null);
   };
-
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>,
-    complaint: Complaint
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedComplaint(complaint);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedComplaint(null);
-  };
-
-  const getStatusColor = (status: string) => {
-    const statusOption = STATUS_OPTIONS.find((opt) => opt.value === status);
-    return statusOption?.color || "default";
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ar-EG");
-  };
-
   // Mobile Card View
   const MobileComplaintCard = ({ complaint }: { complaint: Complaint }) => (
     <MuiCard sx={{ mb: 2, border: `1px solid ${theme.palette.divider}` }}>
@@ -156,7 +109,7 @@ const ComplaintsTable: React.FC = () => {
             <Box display="flex" alignItems="center" gap={1}>
               <Category color="action" fontSize="small" />
               <Typography variant="body2">
-                <strong>النوع:</strong> {complaint.complaintType.name}
+                <strong>النوع:</strong> {complaint?.complaintType?.name}
               </Typography>
             </Box>
 
@@ -164,7 +117,7 @@ const ComplaintsTable: React.FC = () => {
               <Business color="action" fontSize="small" />
               <Typography variant="body2">
                 <strong>الجهة:</strong>{" "}
-                {complaint.complaintType.governmentEntity.name}
+                {complaint?.complaintType?.governmentEntity?.name}
               </Typography>
             </Box>
 
@@ -184,29 +137,7 @@ const ComplaintsTable: React.FC = () => {
             justifyContent="space-between"
             alignItems="center"
           >
-            <Tooltip title="عرض التفاصيل">
-              <IconButton size="small" color="primary">
-                <Visibility />
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip title="تغيير الحالة">
-              <Button
-                variant="outlined"
-                size="small"
-                endIcon={
-                  actionLoading === complaint.id ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <MoreVert />
-                  )
-                }
-                onClick={(e) => handleMenuOpen(e, complaint)}
-                disabled={actionLoading === complaint.id}
-              >
-                تغيير الحالة
-              </Button>
-            </Tooltip>
+            <ViewVersions complaintId={complaint.id} />
           </Box>
         </Stack>
       </MuiCardContent>
@@ -237,7 +168,7 @@ const ComplaintsTable: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {complaints?.data.map((complaint) => (
+          {complaints?.map((complaint) => (
             <TableRow key={complaint.id} hover>
               <TableCell>
                 <Typography variant="body2" fontWeight="bold" color="primary">
@@ -269,8 +200,8 @@ const ComplaintsTable: React.FC = () => {
                   color="text.secondary"
                   display="block"
                 >
-                  {complaint.complaintType.name} -{" "}
-                  {complaint.complaintType.governmentEntity.name}
+                  {complaint?.complaintType?.name} -{" "}
+                  {complaint?.complaintType?.governmentEntity?.name}
                 </Typography>
               </TableCell>
               <TableCell>
@@ -282,25 +213,7 @@ const ComplaintsTable: React.FC = () => {
               </TableCell>
               <TableCell>
                 <Box display="flex" gap={0.5}>
-                  <Tooltip title="عرض التفاصيل">
-                    <IconButton size="small" color="primary">
-                      <Visibility fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title="تغيير الحالة">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, complaint)}
-                      disabled={actionLoading === complaint.id}
-                    >
-                      {actionLoading === complaint.id ? (
-                        <CircularProgress size={16} />
-                      ) : (
-                        <MoreVert fontSize="small" />
-                      )}
-                    </IconButton>
-                  </Tooltip>
+                  <ViewVersions complaintId={complaint.id} />
                 </Box>
               </TableCell>
             </TableRow>
@@ -343,7 +256,7 @@ const ComplaintsTable: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {complaints?.data.map((complaint) => (
+          {complaints?.map((complaint) => (
             <TableRow key={complaint.id} hover>
               <TableCell>
                 <Typography variant="body2" fontWeight="bold" color="primary">
@@ -375,7 +288,7 @@ const ComplaintsTable: React.FC = () => {
                 <Box display="flex" alignItems="center" gap={0.5}>
                   <Category fontSize="small" color="action" />
                   <Typography variant="body2">
-                    {complaint.complaintType.name}
+                    {complaint?.complaintType?.name}
                   </Typography>
                 </Box>
               </TableCell>
@@ -383,7 +296,7 @@ const ComplaintsTable: React.FC = () => {
                 <Box display="flex" alignItems="center" gap={0.5}>
                   <Business fontSize="small" color="action" />
                   <Typography variant="body2">
-                    {complaint.complaintType.governmentEntity.name}
+                    {complaint?.complaintType?.governmentEntity?.name}
                   </Typography>
                 </Box>
               </TableCell>
@@ -404,25 +317,7 @@ const ComplaintsTable: React.FC = () => {
               </TableCell>
               <TableCell>
                 <Box display="flex" gap={1}>
-                  <Tooltip title="عرض التفاصيل">
-                    <IconButton size="small" color="primary">
-                      <Visibility />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title="تغيير الحالة">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, complaint)}
-                      disabled={actionLoading === complaint.id}
-                    >
-                      {actionLoading === complaint.id ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <MoreVert />
-                      )}
-                    </IconButton>
-                  </Tooltip>
+                  <ViewVersions complaintId={complaint.id} />
                 </Box>
               </TableCell>
             </TableRow>
@@ -473,7 +368,7 @@ const ComplaintsTable: React.FC = () => {
         {isMobile ? (
           // Mobile View - Cards
           <Box>
-            {complaints?.data.map((complaint) => (
+            {complaints?.map((complaint) => (
               <MobileComplaintCard key={complaint.id} complaint={complaint} />
             ))}
           </Box>
@@ -485,39 +380,11 @@ const ComplaintsTable: React.FC = () => {
           <DesktopTableView />
         )}
 
-        {complaints?.data.length === 0 && !loading && (
+        {complaints?.length === 0 && !loading && (
           <Alert severity="info" sx={{ mt: 2 }}>
             لا توجد شكاوي لعرضها
           </Alert>
         )}
-
-        {/* Status Change Menu */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          transformOrigin={{ horizontal: "right", vertical: "top" }}
-          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        >
-          {STATUS_OPTIONS.map((status) => (
-            <MenuItem
-              key={status.value}
-              onClick={() =>
-                selectedComplaint &&
-                handleStatusChange(selectedComplaint.id, status.value)
-              }
-              disabled={selectedComplaint?.status === status.value}
-            >
-              <Chip
-                label={status.label}
-                color={status.color as any}
-                size="small"
-                sx={{ mr: 1 }}
-              />
-              تغيير إلى {status.label}
-            </MenuItem>
-          ))}
-        </Menu>
       </CardContent>
     </Card>
   );

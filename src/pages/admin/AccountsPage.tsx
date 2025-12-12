@@ -1,8 +1,13 @@
 import React from 'react'
+import AddEmployeeForm from '../../components/AddEmployeeForm'
 
 const AccountsPage = () => {
   return (
-    <div>AccountsPage</div>
+    <>
+    <div>AccountsPage
+      <AddEmployeeForm/>
+    </div>
+    </>
   )
 }
 

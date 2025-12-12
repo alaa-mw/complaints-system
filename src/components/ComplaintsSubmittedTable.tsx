@@ -41,6 +41,7 @@ import { Complaint } from "../interfaces/Complaint";
 import useFetchData from "../hooks/useFetchData";
 import usePatchData from "../hooks/usePatchData";
 import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "../contexts/SnackbarContext";
 
 // Status options
 const STATUS_OPTIONS = [
@@ -63,12 +64,14 @@ const ComplaintsSubmittedTable: React.FC = () => {
     null
   );
 
-  const { data: complaints, isLoading: loading } = useFetchData<Complaint[]>(
+  const { data: complaints, isLoading: loading , refetch } = useFetchData<Complaint[]>(
     "/complaints/my-complaints-submitted"
   );
   const { mutate: changeStatus } = usePatchData(
     `/complaints/change-status/${selectedComplaint?.id}`
   );
+
+  const { showSnackbar } = useSnackbar();
 
   const handleStatusChange = async (complaintId: number, newStatus: string) => {
     setActionLoading(complaintId);
@@ -78,6 +81,8 @@ const ComplaintsSubmittedTable: React.FC = () => {
       },
       {
         onSuccess: (response) => {
+          showSnackbar(response.message, "success");
+          refetch();
           console.log("response:", response);
         },
         onError: (error) => {

@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosRequestConfig, AxiosError} from "axios";
-// import { logoutSuccess } from "../features/auth/Redux/authSlice";
-// import store from "../store";
-// export const baseUrl =  "http://127.0.0.1:8000/";
+import TokenService from './tokenService';
 
-export const baseUrl =  "https://complaint-app-gvhv.onrender.com";
+export const baseUrl =  "http://127.0.0.1:3000";
+// export const baseUrl =  "https://complaint-app-gvhv.onrender.com";
+// export const baseUrl =  "https://d4ed84440d78.ngrok-free.app";
 const baseAxios = axios.create({
-  baseURL:"/api",
+  baseURL:"/api", // in vite.config : when see "/api" replace with correct link as proxy
   
   headers: {
     'Content-Type': 'application/json',
@@ -14,11 +15,46 @@ const baseAxios = axios.create({
 });
 
 
+export const refreshAccessToken = async (): Promise<boolean> => {
+  try {
+    const refreshToken = TokenService.getRefreshToken();
+    if (!refreshToken) return false;
+
+    const response = await baseAxios.post<{
+      accessToken: string;
+      refreshToken: string;
+    }>("/authentication/refresh-token", { refreshToken });
+
+    TokenService.setTokens({
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken
+    });
+
+    return true;
+  } catch (error) {
+    console.log("Token refresh error:", error);
+    TokenService.clearTokens();
+    return false;
+  }
+};
+
+
 // baseAxios.interceptors.response.use(
 //   (response: AxiosResponse) => response,
-//   (error: AxiosError) => {
-//     if (error.response?.status === 401) {
-//       store.dispatch(logoutSuccess());  // logout when token expired
+//  async  (error: AxiosError) => {
+//   const originalRequest = error.config;
+//     console.log("originalRequest",originalRequest)
+//     if (error.response?.status === 401 && originalRequest) {// token expired
+//       console.log("---------401-----------");
+//       // const refreshed = await refreshAccessToken();
+      
+//       // if (refreshed) {
+//       //   // Retry the original request with new token
+//       //   return baseAxios(originalRequest);
+//       // } else {
+//       //   // Redirect to login or handle auth failure
+//       //   window.location.href = '/login';
+//       // }
 //     }
 //     return Promise.reject(error);
 //   }
@@ -27,7 +63,7 @@ const baseAxios = axios.create({
 
 baseAxios.interceptors.request.use((config) => {
   // config.baseURL = getDynamicBaseURL();
-  const token = localStorage.getItem("authToken");
+  const token = TokenService.getAccessToken();
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
@@ -48,6 +84,19 @@ class APIClient<T> {
     this.endpoint = endpoint;
   }
 
+    private buildUrl = (queryParams: Record<string, any> | undefined) => {
+    console.log("queryParams--",queryParams);
+    if (!queryParams || Object.keys(queryParams).length === 0) return this.endpoint;
+    const params = new URLSearchParams();
+    for (const key in queryParams) {
+      const val = queryParams[key];
+      if (val !== undefined && val !== null) params.append(key, String(val));
+    }
+    const qs = params.toString();
+    console.log("qs--",qs);
+    return qs ? `${this.endpoint}?${qs}` : this.endpoint;
+  };
+  
   private request = <TData>(config: AxiosRequestConfig) => {
     return baseAxios
       .request<FetchResponse<TData>>(config)
@@ -58,32 +107,26 @@ class APIClient<T> {
       });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get = (queryParams:Record<string ,any>  = {}) => {
-    const params = new URLSearchParams();
-    // console.log("params",params);
-
-    for (const key in queryParams) {
-      if (queryParams[key] !== undefined) {
-        params.append(key, queryParams[key]);
-      }
-    }
-    // console.log("paramsAfter",params);
-
-    const queryString = params.toString();
-    // console.log("queryString",queryString);
-
+    console.log("get with params",this.buildUrl(queryParams));
     return this.request<T>({ method: "GET",
-       url: queryString ? `${this.endpoint}?${queryString}` : this.endpoint })
+        url: this.buildUrl(queryParams) })
   };
 
   post = (data?: unknown) =>
     this.request<T>({
       method: "POST",
       url: this.endpoint, 
-      // responseType: 'blob', // important
       data,
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {  "Content-Type": "application/json" },
+    });
+
+  postWithParams = (data?: unknown, queryParams?: Record<string, any>) =>
+    this.request<T>({
+      method: "POST",
+      url: this.buildUrl(queryParams),
+      data,
+      headers: { "Content-Type": "application/json" },
     });
 
   postNoToken = (data?: unknown) =>

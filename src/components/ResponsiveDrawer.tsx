@@ -57,7 +57,7 @@ const ResponsiveDrawer = ({
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" my={1}>
-            أجيال التعليمي
+            نظام الشكاوي 
           </Typography>
         </Toolbar>
       </AppBar>

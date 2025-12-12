@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import ResponsiveDrawer, {
   drawerWidth,
 } from "../../components/ResponsiveDrawer";
-import { sidebarData } from "../../static/employee";
+import { sidebarData } from "../../static/sidebarData";
 
 const AdminDashboard = () => {
   const containerRef = useRef<HTMLDivElement>(null); // Create the ref

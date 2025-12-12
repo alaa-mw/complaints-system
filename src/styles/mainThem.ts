@@ -55,13 +55,13 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#17284B',    // Dark blue
+      main: '#46847C',    // Dark blue
       light: '#2A4B7C',   // Lighter blue
       dark: '#0F1A33',    // Darker blue
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#A38097',    // Purple/mauve
+      main: '#8b9494ff',    // Purple/mauve
       light: '#c97cb6ff',   // Light purple
       dark: '#7A5E73',    // Dark purple
       contrastText: '#ffffff',

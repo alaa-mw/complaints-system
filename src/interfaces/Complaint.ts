@@ -11,12 +11,6 @@ export interface Complaint {
 
 type ComplaintStatus = 'جديد' | 'قيد المعالجة' | 'منجزة' | 'مرفوضة' ;
 
-// export enum ComplaintStatus {
-//     NEW = 'جديد',
-//     REJECTED = 'مرفوضة',
-//     Completed = 'منجزة',
-//     PROCESSING = 'قيد المعالجة',
-// }
 
 interface ComplaintType {
   id: number;
@@ -62,10 +56,41 @@ export interface ComplaintDetails {
   attachments: string[];
   requestsAndReplies: RequestReply[];
   employee_notes: RequestReply[];
+  version?: number;
+  versions?: ComplaintVersion[];
 }
 
 export interface ComplaintDetailsResponse {
   data: ComplaintDetails;
   message: string;
   status: string;
+}
+
+export interface ComplaintsPaginationResponse {
+  data: Complaint[];
+  page: number;
+  totalPages: number;
+  total: number;
+  limit: number;
+}
+
+export interface Attachment {
+  id: number;
+  file_path: string;
+  file_type: string;
+  public_id: string;
+  attachable_type: string;
+  attachable_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplaintVersion {
+  id: number;
+  location: string;
+  description: string;
+  status: string;
+  version: number;
+  changed_at: string;
+  attachments: Attachment[];
 }
