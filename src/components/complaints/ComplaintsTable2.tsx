@@ -33,20 +33,25 @@ import {
   Business,
   CalendarToday,
 } from "@mui/icons-material";
-import { Complaint } from "../interfaces/Complaint";
-import { getStatusColor } from "../utils/getStatusColor";
-import { formatDate } from "../utils/formatDate";
+import { Complaint } from "../../interfaces/Complaint";
+import { getStatusColor } from "../../utils/getStatusColor";
+import { formatDate } from "../../utils/formatDate";
 import { useNavigate } from "react-router-dom";
+import ChangeStatusButton from "./ChangeStatusButton";
 
 interface ComplaintsTableProps {
   complaints: Complaint[];
   loading: boolean;
-  refetch?: () => void;
+  refetch: () => void;
+  showMarkInProgress?: boolean;
+  showChangeStatus?: boolean;
 }
 const ComplaintsTable = ({
   complaints,
   loading,
   refetch,
+  showMarkInProgress = false,
+  showChangeStatus = false,
 }: ComplaintsTableProps) => {
   const theme = useTheme();
 
@@ -56,7 +61,7 @@ const ComplaintsTable = ({
   const ViewVersions = ({ complaintId }: { complaintId: number }) => {
     const navigate = useNavigate();
     return (
-      <Tooltip title="عرض التعديلات">
+      <Tooltip title="عرض التفاصيل">
         <IconButton
           size="small"
           color="primary"
@@ -137,7 +142,18 @@ const ComplaintsTable = ({
             justifyContent="space-between"
             alignItems="center"
           >
-            <ViewVersions complaintId={complaint.id} />
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <ViewVersions complaintId={complaint.id} />
+              {showMarkInProgress && (
+                <ChangeStatusButton complaintId={complaint.id} />
+              )}
+              {showChangeStatus && (
+                <ChangeStatusButton
+                  complaintId={complaint.id}
+                  chooseStatus
+                />
+              )}
+            </Box>
           </Box>
         </Stack>
       </MuiCardContent>
@@ -212,8 +228,17 @@ const ComplaintsTable = ({
                 />
               </TableCell>
               <TableCell>
-                <Box display="flex" gap={0.5}>
+                <Box display="flex" gap={0.5} alignItems="center">
                   <ViewVersions complaintId={complaint.id} />
+                  {showMarkInProgress && (
+                    <ChangeStatusButton complaintId={complaint.id} />
+                  )}
+                   {showChangeStatus && (
+                <ChangeStatusButton
+                  complaintId={complaint.id}
+                chooseStatus
+                />
+              )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -229,28 +254,28 @@ const ComplaintsTable = ({
       <Table stickyHeader aria-label="complaints table">
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 120 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 100 }}>
               رقم المرجع
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 150 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 130 }}>
               الموقع
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 200 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 170 }}>
               الوصف
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 150 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 130 }}>
               نوع الشكوى
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 150 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 130 }}>
               الجهة الحكومية
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 120 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 100 }}>
               الحالة
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 120 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 100 }}>
               تاريخ الإنشاء
             </TableCell>
-            <TableCell sx={{ fontWeight: "bold", minWidth: 120 }}>
+            <TableCell sx={{ fontWeight: "bold", minWidth: 80 }}>
               الإجراءات
             </TableCell>
           </TableRow>
@@ -316,8 +341,17 @@ const ComplaintsTable = ({
                 </Box>
               </TableCell>
               <TableCell>
-                <Box display="flex" gap={1}>
+                <Box display="flex" gap={1} alignItems="center">
                   <ViewVersions complaintId={complaint.id} />
+                  {showMarkInProgress && (
+                    <ChangeStatusButton complaintId={complaint.id} />
+                  )}
+                   {showChangeStatus && (
+                <ChangeStatusButton
+                  complaintId={complaint.id}
+                  chooseStatus
+                />
+              )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -356,7 +390,7 @@ const ComplaintsTable = ({
           <Button
             variant="outlined"
             startIcon={<Refresh />}
-            // onClick={fetchComplaints} fix
+            onClick={() => refetch()}
             disabled={loading}
             size={isMobile ? "small" : "medium"}
           >

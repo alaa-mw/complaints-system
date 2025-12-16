@@ -2,6 +2,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import {
   Home as HomeIcon} from '@mui/icons-material';
 import TaskIcon from '@mui/icons-material/Task';
+import StarIcon from '@mui/icons-material/Star';
 export const sidebarData = {
     admin:[ 
         {
@@ -13,6 +14,11 @@ export const sidebarData = {
             title: 'الحسابات',
             path:"/accounts",
             icon: ManageAccountsIcon,
+        },
+        {
+            title: 'الحكومات',
+            path:"/governments",
+            icon: StarIcon,
         },
         {
             title: 'الشكاوي',

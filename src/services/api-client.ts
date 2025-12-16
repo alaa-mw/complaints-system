@@ -150,6 +150,9 @@ class APIClient<T> {
     return this.request<T>({ method: "DELETE", url: `${this.endpoint}/${id}`})
   }
 
+  deleteWithBody = (data?: unknown) =>{
+    return this.request<T>({ method: "DELETE", url: `${this.endpoint}`, data  })
+  }
   // PATCH method
   patch = (data?: unknown) =>
     this.request<T>({

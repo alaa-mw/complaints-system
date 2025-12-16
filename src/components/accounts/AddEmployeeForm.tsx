@@ -13,7 +13,7 @@ import {
   Divider,
 } from "@mui/material";
 import { PersonAdd, Save, Clear } from "@mui/icons-material";
-import useSendData from "../hooks/useSendData";
+import useSendData from "../../hooks/useSendData";
 
 interface EmployeeFormData {
   full_name: string;

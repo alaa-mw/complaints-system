@@ -9,9 +9,9 @@ import {
   MenuItem,
   Pagination,
 } from "@mui/material";
-import { STATUS_OPTIONS } from "../static/statusEnum";
-import { FetchResponse } from "../services/api-client";
-import { ComplaintsPaginationResponse } from "../interfaces/Complaint";
+import { STATUS_OPTIONS } from "../../static/statusEnum";
+import { FetchResponse } from "../../services/api-client";
+import { ComplaintsPaginationResponse } from "../../interfaces/Complaint";
 
 interface Props {
   queryParams: Record<string, any>;

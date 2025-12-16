@@ -1,14 +1,12 @@
-import React from 'react'
-import AddEmployeeForm from '../../components/AddEmployeeForm'
+// import React from "react";
+import AccountsTable from "../../components/accounts/AccountsTable";
 
 const AccountsPage = () => {
   return (
     <>
-    <div>AccountsPage
-      <AddEmployeeForm/>
-    </div>
+      <AccountsTable />
     </>
-  )
-}
+  );
+};
 
-export default AccountsPage
+export default AccountsPage;

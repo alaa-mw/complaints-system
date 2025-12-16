@@ -12,12 +12,15 @@ import AccountsPage from "./pages/admin/AccountsPage";
 import ComplaintsPage from "./pages/admin/ComplaintsPage";
 import GovComplaintsPage from "./pages/employee/GovComplaintsPage";
 import SubmittedComplaintsPage from "./pages/employee/SubmittedComplaintsPage";
-import ComplaintDetails from "./components/ComplaintDetails";
+import ComplaintDetails from "./components/complaints/ComplaintDetails";
 import { useEffect } from "react";
 import { getFirebaseToken, messaging } from "./firebase/firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import TokenService from "./services/tokenService";
+import AddEmployeeForm from "./components/accounts/AddEmployeeForm";
+import GovernmentsGrid from "./components/governments/GovernmentsGrid";
+import GovernmentDetails from "./components/governments/GovernmentDetails";
 
 function App() {
   const navigate = useNavigate();
@@ -59,7 +62,10 @@ function App() {
               <Route path="*" element={<div>later</div>} />
               <Route index element={<HomePage />} />
               <Route path="accounts" element={<AccountsPage />} />
+              <Route path="accounts/add" element={<AddEmployeeForm />} />
               <Route path="complaints" element={<ComplaintsPage />} />
+              <Route path="governments" element={<GovernmentsGrid />} />
+              <Route path="governments/:id" element={<GovernmentDetails />} />
               <Route
                 path="complaints/:id"
                 element={<ComplaintDetails isAdmin={true} />}
