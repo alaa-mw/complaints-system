@@ -30,6 +30,7 @@ import {
   Chat,
   Note,
   Add,
+  Edit,
 } from "@mui/icons-material";
 // import useFetchData from "../hooks/useFetchData";
 // import ComplaintVersions from "./ComplaintVersions";
@@ -42,10 +43,14 @@ import {
 import { io } from "socket.io-client";
 import useFetchData from "../../hooks/useFetchData";
 import ComplaintVersions from "./ComplaintVersions";
-import {  ComplaintDetails as details, RequestReply } from "../../interfaces/Complaint";
+import {
+  ComplaintDetails as details,
+  RequestReply,
+} from "../../interfaces/Complaint";
 import { useSnackbar } from "../../contexts/SnackbarContext";
 import { baseUrl } from "../../services/api-client";
 import useSendData from "../../hooks/useSendData";
+import getImageUrl from "../../services/image-url";
 // import { baseUrl } from "../services/api-client";
 
 const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
@@ -57,6 +62,11 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [requestText, setRequestText] = useState("");
   const [noteText, setNoteText] = useState("");
+
+  // Edit complaint dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDescription, setEditDescription] = useState("");
+  const [editLocation, setEditLocation] = useState("");
 
   useEffect(() => {
     const socket = io(baseUrl + "/", {
@@ -88,7 +98,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   );
 
   const { data: complaintVersions } = useFetchData<details>(
-     `/complaints/get-complaint-with-versions/${id}`
+    `/complaints/get-complaint-with-versions/${id}`
   );
 
   const { mutate: addRequest, isPending: isAddingRequest } = useSendData<any>(
@@ -98,6 +108,37 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const { mutate: addNote, isPending: isAddingNote } = useSendData<any>(
     `/complaint-comments/employee-note`
   );
+
+  // Update complaint
+  const { mutate: updateComplaint, isPending: isUpdatingComplaint } =
+    useSendData<any>(`/complaints/update-complaint/${id || ""}`);
+
+  const openEditDialog = () => {
+    setEditDescription(complaint?.description || "");
+    setEditLocation(complaint?.location || "");
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateComplaint = () => {
+    if (!id) return;
+    updateComplaint(
+      {
+        description: editDescription,
+        location: editLocation,
+      },
+      {
+        onSuccess: (response) => {
+          showSnackbar(response.message, "success");
+          setEditDialogOpen(false);
+          refetch();
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : "حدث خطأ";
+          showSnackbar(message, "error");
+        },
+      }
+    );
+  };
 
   const complaint = complaintDetails?.data;
 
@@ -268,94 +309,94 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   );
 
   // Add Request Dialog
-  const RequestDialog = () => (
-    <Dialog
-      open={requestDialogOpen}
-      onClose={() => setRequestDialogOpen(false)}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Chat />
-          إضافة طلب معلومات جديد
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <TextField
-          // autoFocus
-          multiline
-          rows={4}
-          fullWidth
-          placeholder="اكتب طلب المعلومات هنا..."
-          value={requestText}
-          onChange={(e) => setRequestText(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={() => setRequestDialogOpen(false)}
-          disabled={isAddingRequest}
-        >
-          إلغاء
-        </Button>
-        <Button
-          onClick={handleAddRequest}
-          variant="contained"
-          disabled={!requestText.trim() || isAddingRequest}
-          startIcon={isAddingRequest ? <CircularProgress size={16} /> : <Add />}
-        >
-          {isAddingRequest ? "جاري الإضافة..." : "إضافة الطلب"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+  // const RequestDialog = () => (
+  //   <Dialog
+  //     open={requestDialogOpen}
+  //     onClose={() => setRequestDialogOpen(false)}
+  //     maxWidth="sm"
+  //     fullWidth
+  //   >
+  //     <DialogTitle>
+  //       <Box display="flex" alignItems="center" gap={1}>
+  //         <Chat />
+  //         إضافة طلب معلومات جديد
+  //       </Box>
+  //     </DialogTitle>
+  //     <DialogContent>
+  //       <TextField
+  //         // autoFocus
+  //         multiline
+  //         rows={4}
+  //         fullWidth
+  //         placeholder="اكتب طلب المعلومات هنا..."
+  //         value={requestText}
+  //         onChange={(e) => setRequestText(e.target.value)}
+  //         sx={{ mt: 2 }}
+  //       />
+  //     </DialogContent>
+  //     <DialogActions>
+  //       <Button
+  //         onClick={() => setRequestDialogOpen(false)}
+  //         disabled={isAddingRequest}
+  //       >
+  //         إلغاء
+  //       </Button>
+  //       <Button
+  //         onClick={handleAddRequest}
+  //         variant="contained"
+  //         disabled={!requestText.trim() || isAddingRequest}
+  //         startIcon={isAddingRequest ? <CircularProgress size={16} /> : <Add />}
+  //       >
+  //         {isAddingRequest ? "جاري الإضافة..." : "إضافة الطلب"}
+  //       </Button>
+  //     </DialogActions>
+  //   </Dialog>
+  // );
 
   // Add Note Dialog
-  const NoteDialog = () => (
-    <Dialog
-      open={noteDialogOpen}
-      onClose={() => setNoteDialogOpen(false)}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Note />
-          إضافة ملاحظة موظف جديدة
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          multiline
-          rows={4}
-          fullWidth
-          placeholder="اكتب ملاحظتك هنا..."
-          value={noteText}
-          onChange={(e) => setNoteText(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={() => setNoteDialogOpen(false)}
-          disabled={isAddingNote}
-        >
-          إلغاء
-        </Button>
-        <Button
-          onClick={handleAddNote}
-          variant="contained"
-          disabled={!noteText.trim() || isAddingNote}
-          startIcon={isAddingNote ? <CircularProgress size={16} /> : <Add />}
-        >
-          {isAddingNote ? "جاري الإضافة..." : "إضافة الملاحظة"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+  // const NoteDialog = () => (
+  //   <Dialog
+  //     open={noteDialogOpen}
+  //     onClose={() => setNoteDialogOpen(false)}
+  //     maxWidth="sm"
+  //     fullWidth
+  //   >
+  //     <DialogTitle>
+  //       <Box display="flex" alignItems="center" gap={1}>
+  //         <Note />
+  //         إضافة ملاحظة موظف جديدة
+  //       </Box>
+  //     </DialogTitle>
+  //     <DialogContent>
+  //       <TextField
+  //         autoFocus
+  //         multiline
+  //         rows={4}
+  //         fullWidth
+  //         placeholder="اكتب ملاحظتك هنا..."
+  //         value={noteText}
+  //         onChange={(e) => setNoteText(e.target.value)}
+  //         sx={{ mt: 2 }}
+  //       />
+  //     </DialogContent>
+  //     <DialogActions>
+  //       <Button
+  //         onClick={() => setNoteDialogOpen(false)}
+  //         disabled={isAddingNote}
+  //       >
+  //         إلغاء
+  //       </Button>
+  //       <Button
+  //         onClick={handleAddNote}
+  //         variant="contained"
+  //         disabled={!noteText.trim() || isAddingNote}
+  //         startIcon={isAddingNote ? <CircularProgress size={16} /> : <Add />}
+  //       >
+  //         {isAddingNote ? "جاري الإضافة..." : "إضافة الملاحظة"}
+  //       </Button>
+  //     </DialogActions>
+  //   </Dialog>
+  // );
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -377,6 +418,19 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
             رقم المرجع: {complaint?.reference_number}
           </Typography>
         </Box>
+        {/* Edit button */}
+        {!isAdmin && (
+          <Box ml="auto">
+            <Button
+              variant="outlined"
+              startIcon={<Edit />}
+              onClick={openEditDialog}
+              disabled={!complaint}
+            >
+              تعديل الشكوى
+            </Button>
+          </Box>
+        )}
       </Box>
 
       <Grid container spacing={3}>
@@ -462,7 +516,11 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                             variant="outlined"
                             size="small"
                             component="a"
-                            href={attachment}
+                            href={
+                              (attachment.file_type === "image"
+                                ? attachment.file_path
+                                : getImageUrl(attachment.file_path))
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -560,7 +618,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         </Grid>
         {/* Versions Section - Add below the details card */}
         {isAdmin && (
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 12 }}>
             <Box sx={{ mt: 3 }}>
               <ComplaintVersions versions={complaintVersions?.data.versions} />
             </Box>
@@ -569,8 +627,144 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
       </Grid>
 
       {/* Dialogs */}
-      <RequestDialog />
-      <NoteDialog />
+      {/* <RequestDialog /> */}
+      <Dialog
+        open={requestDialogOpen}
+        onClose={() => setRequestDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Chat />
+            إضافة طلب معلومات جديد
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            // autoFocus
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="اكتب طلب المعلومات هنا..."
+            value={requestText}
+            onChange={(e) => setRequestText(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setRequestDialogOpen(false)}
+            disabled={isAddingRequest}
+          >
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleAddRequest}
+            variant="contained"
+            disabled={!requestText.trim() || isAddingRequest}
+            startIcon={
+              isAddingRequest ? <CircularProgress size={16} /> : <Add />
+            }
+          >
+            {isAddingRequest ? "جاري الإضافة..." : "إضافة الطلب"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Note Dialog */}
+      <Dialog
+        open={noteDialogOpen}
+        onClose={() => setNoteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Note />
+            إضافة ملاحظة موظف جديدة
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="اكتب ملاحظتك هنا..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setNoteDialogOpen(false)}
+            disabled={isAddingNote}
+          >
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleAddNote}
+            variant="contained"
+            disabled={!noteText.trim() || isAddingNote}
+            startIcon={isAddingNote ? <CircularProgress size={16} /> : <Add />}
+          >
+            {isAddingNote ? "جاري الإضافة..." : "إضافة الملاحظة"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Complaint Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Description />
+            تعديل الشكوى
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            label="الموقع"
+            fullWidth
+            value={editLocation}
+            onChange={(e) => setEditLocation(e.target.value)}
+            sx={{ mt: 1 }}
+          />
+          <TextField
+            multiline
+            rows={4}
+            label="الوصف"
+            fullWidth
+            value={editDescription}
+            onChange={(e) => setEditDescription(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            disabled={isUpdatingComplaint}
+          >
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleUpdateComplaint}
+            variant="contained"
+            disabled={isUpdatingComplaint}
+            startIcon={
+              isUpdatingComplaint ? <CircularProgress size={16} /> : undefined
+            }
+          >
+            {isUpdatingComplaint ? "جاري التحديث..." : "حفظ"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

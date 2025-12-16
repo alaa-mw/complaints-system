@@ -53,7 +53,7 @@ export interface ComplaintDetails {
   description: string;
   status: string;
   created_at: string;
-  attachments: string[];
+  attachments: Attachment[];
   requestsAndReplies: RequestReply[];
   employee_notes: RequestReply[];
   version?: number;

@@ -78,7 +78,7 @@ const ChangeStatusButton = ({
           <MenuItem key={c.id} onClick={() => exec(c.value)}>
             <ListItemText>{c.label}</ListItemText>
             <ListItemIcon>
-              <Chip label={c.label} size="small" color={c.color as any} />
+              <Chip label={c.label} size="small" color={c.color} />
             </ListItemIcon>
           </MenuItem>
         ))}

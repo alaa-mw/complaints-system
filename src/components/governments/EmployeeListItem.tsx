@@ -33,6 +33,7 @@ const EmployeeListItem: React.FC<Props> = ({
   return (
     <ListItem
       sx={{
+        mx:2,
         py: 1.5,
         "&:hover": { bgcolor: "action.hover" },
         transition: "background-color 0.2s",

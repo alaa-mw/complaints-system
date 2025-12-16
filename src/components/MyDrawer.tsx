@@ -38,6 +38,8 @@ const MyDrawer = ({ handleDrawerClose, sidebardata }: MyDrawerProps) => {
   //   undefined
   // );
   const handleLogout = () => {
+    TokenService.clearTokens();
+    window.location.href = "/";
     // logout(undefined, {
     //   onSuccess: () => {
     //     dispatch(logoutSuccess());

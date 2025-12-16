@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosRequestConfig, AxiosError} from "axios";
+import axios, { AxiosRequestConfig, AxiosError, AxiosResponse} from "axios";
 import TokenService from './tokenService';
 
-export const baseUrl =  "http://127.0.0.1:3000";
+// export const baseUrl =  "http://127.0.0.1:3000";
 // export const baseUrl =  "https://complaint-app-gvhv.onrender.com";
-// export const baseUrl =  "https://d4ed84440d78.ngrok-free.app";
+export const baseUrl =  "https://99dd855225df.ngrok-free.app";
 const baseAxios = axios.create({
   baseURL:"/api", // in vite.config : when see "/api" replace with correct link as proxy
   
@@ -15,50 +15,82 @@ const baseAxios = axios.create({
 });
 
 
-export const refreshAccessToken = async (): Promise<boolean> => {
-  try {
-    const refreshToken = TokenService.getRefreshToken();
-    if (!refreshToken) return false;
+// export const refreshAccessToken = async (): Promise<string|null> => {
+//   try {
+//     const refreshToken = TokenService.getRefreshToken();
+//     // if (!refreshToken) return false;
 
-    const response = await baseAxios.post<{
-      accessToken: string;
-      refreshToken: string;
-    }>("/authentication/refresh-token", { refreshToken });
+//     const response = await baseAxios.post<{
+//       accessToken: string;
+//       refreshToken: string;
+//     }>("/authentication/refresh-token", { refreshToken }).then(response =>{
+//         TokenService.setTokens({
+//           accessToken: response.data.accessToken,
+//           refreshToken: response.data.refreshToken
+//       });
+//       return response.data.accessToken;
+//     });
 
-    TokenService.setTokens({
-      accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken
-    });
-
-    return true;
-  } catch (error) {
-    console.log("Token refresh error:", error);
-    TokenService.clearTokens();
-    return false;
-  }
-};
-
-
-// baseAxios.interceptors.response.use(
-//   (response: AxiosResponse) => response,
-//  async  (error: AxiosError) => {
-//   const originalRequest = error.config;
-//     console.log("originalRequest",originalRequest)
-//     if (error.response?.status === 401 && originalRequest) {// token expired
-//       console.log("---------401-----------");
-//       // const refreshed = await refreshAccessToken();
-      
-//       // if (refreshed) {
-//       //   // Retry the original request with new token
-//       //   return baseAxios(originalRequest);
-//       // } else {
-//       //   // Redirect to login or handle auth failure
-//       //   window.location.href = '/login';
-//       // }
-//     }
-//     return Promise.reject(error);
+//     return null ;
+//   } catch (error) {
+//     console.log("Token refresh error:", error);
+//     TokenService.clearTokens();
+//     return null;
 //   }
-// );
+// };
+
+
+baseAxios.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any;
+    console.log("originalRequest", originalRequest);
+
+    // Do not attempt refresh for refresh-token endpoint itself
+    const isRefreshEndpoint = originalRequest?.url?.includes("/authentication/refresh-token");
+
+    const MAX_REFRESH_RETRIES = 1; // limit retry attempts
+
+    if (error.response?.status === 401 && originalRequest && !isRefreshEndpoint) {
+      console.log("---------401-----------");
+
+      originalRequest._retryCount = originalRequest._retryCount ?? 0;
+      if (originalRequest._retryCount >= MAX_REFRESH_RETRIES) {
+        console.warn("Max token refresh retries exceeded");;
+        return Promise.reject(error);
+      }
+
+      originalRequest._retryCount += 1;
+
+      const refreshToken = TokenService.getRefreshToken();
+      baseAxios.post<{
+        data: {
+        accessToken: string;
+        refreshToken: string;
+      }
+      }>("/authentication/refresh-token", { refreshToken }).then(response =>{
+          TokenService.setTokens({
+            accessToken: response.data.data.accessToken,
+            refreshToken: response.data.data.refreshToken
+        });
+      });
+
+      const acceccToken = TokenService.getAccessToken();
+      console.log("**new access token:", acceccToken);
+      if (acceccToken) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${acceccToken}`;
+        
+        return baseAxios(originalRequest);
+      } else {
+        // Token refresh failed - clear tokens and let caller handle (e.g., redirect to login)
+        TokenService.clearTokens();
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 
 baseAxios.interceptors.request.use((config) => {

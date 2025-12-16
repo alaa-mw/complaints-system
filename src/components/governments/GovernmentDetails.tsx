@@ -2,6 +2,8 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import useFetchData from "../../hooks/useFetchData";
 import useDeleteData from "../../hooks/useDeleteData";
+import useFetchDataWithParams from "../../hooks/useFetchDataWithParams";
+import useSendData from "../../hooks/useSendData";
 import { useSnackbar } from "../../contexts/SnackbarContext";
 import GovernmentHeader from "./GovernmentHeader";
 import EmployeesList from "./EmployeesList";
@@ -17,6 +19,11 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { People, Description, MoreVert, PersonAdd } from "@mui/icons-material";
 
@@ -42,14 +49,54 @@ interface GovernmentDetailsResponse {
 
 const GovernmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, isError } = useFetchData<GovernmentDetailsResponse>(
-    `/government/${id}`
-  );
+  const { data, isLoading, isError, refetch } =
+    useFetchData<GovernmentDetailsResponse>(`/government/${id}`);
 
   const { showSnackbar } = useSnackbar();
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
-  const {mutate:deleteEmployee} = useDeleteData(`/government/${id}/users`);
+  const { mutate: deleteEmployee } = useDeleteData(`/government/${id}/users`);
+
+  // Add employee dialog state
+  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    null
+  );
+
+  // Fetch users with role=employee for selection
+  const {
+    data: accountsData,
+    isLoading: isAccountsLoading,
+    refetch: refetchAccounts,
+  } = useFetchDataWithParams<{ data: Employee[] }>("/users/all-users", {
+    role: "employee",
+  
+  });
+
+  const { mutate: addEmployee, isPending: isAddingEmployee } = useSendData<{
+    message: string;
+    status: string;
+  }>(`/government/${id}/users`);
+
+  const handleAddEmployee = (userId: number) => {
+    if (!id) return;
+    setSelectedUserId(userId);
+    addEmployee(
+      { userIds: [userId] },
+      {
+        onSuccess: (res) => {
+          showSnackbar(res.message || "تمت الإضافة", "success");
+          setAddDialogOpen(false);
+          refetch();
+        },
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : "حدث خطأ";
+          showSnackbar(msg, "error");
+        },
+        onSettled: () => setSelectedUserId(null),
+      }
+    );
+  };
 
   const handleDeleteEmployee = (empId: number) => {
     setDeletingId(empId);
@@ -58,6 +105,7 @@ const GovernmentDetails: React.FC = () => {
       {
         onSuccess: () => {
           showSnackbar("تم حذف الموظف من الجهة", "success");
+          refetch();
         },
         onError: () => {
           showSnackbar("حدث خطأ أثناء الحذف", "error");
@@ -141,11 +189,88 @@ const GovernmentDetails: React.FC = () => {
       <Divider />
       <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
         <Tooltip title="إضافة موظف">
-          <IconButton color="success">
+          <IconButton
+            color="success"
+            onClick={() => {
+              setAddDialogOpen(true);
+              refetchAccounts();
+            }}
+          >
             <PersonAdd />
           </IconButton>
         </Tooltip>
       </Box>
+
+      {/* Add Employee Dialog */}
+      <Dialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>إضافة موظف إلى الجهة</DialogTitle>
+        <DialogContent>
+          {isAccountsLoading ? (
+            <Box display="flex" justifyContent="center" my={2}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box>
+              {accountsData?.data?.data &&
+                accountsData.data.data.length === 0 && (
+                  <Alert severity="info">لا يوجد موظفين لعرضهم</Alert>
+                )}
+              {accountsData?.data?.data &&
+                accountsData.data.data.length > 0 && (
+                  <Box sx={{ display: "grid", gap: 1 }}>
+                    {accountsData.data.data.map((acc: Employee) => (
+                      <Box
+                        key={acc.id}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          p: 1,
+                          borderBottom: "1px solid",
+                        }}
+                      >
+                        <Box>
+                          <Typography fontWeight="bold">
+                            {acc.full_name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {acc.email}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Button
+                            size="small"
+                            disabled={
+                              isAddingEmployee || selectedUserId === acc.id
+                            }
+                            onClick={() => handleAddEmployee(acc.id)}
+                          >
+                            {isAddingEmployee && selectedUserId === acc.id
+                              ? "جارٍ الإضافة..."
+                              : "اختيار"}
+                          </Button>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setAddDialogOpen(false)}
+            disabled={isAddingEmployee}
+          >
+            إغلاق
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };
