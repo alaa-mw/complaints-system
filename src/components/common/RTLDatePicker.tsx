@@ -60,6 +60,7 @@ export function RTLDatePicker({
           actionBar: {
             actions: ["today"],
             sx: {
+              height: 10,
               flexDirection: "row-reverse",
             },
           },

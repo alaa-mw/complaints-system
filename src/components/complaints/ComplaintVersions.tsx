@@ -105,6 +105,14 @@ const ComplaintVersions: React.FC<Props> = ({ versions }) => {
                   >
                     {v.description}
                   </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mt: 1,
+                    }}
+                  >
+                    {v.changedBy ? `تم التعديل بواسطة: ${v.changedBy.full_name}` : ''}
+                  </Typography>
                 </Box>
 
                 {v.attachments && v.attachments.length > 0 && (

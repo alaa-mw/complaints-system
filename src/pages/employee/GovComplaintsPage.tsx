@@ -8,8 +8,6 @@ const GovComplaintsPage = () => {
     refetch,
   } = useFetchData<Complaint[]>("/complaints/my-entity-complaints");
 
-    
-
   return (
     <>
       <ComplaintsTable
@@ -17,6 +15,7 @@ const GovComplaintsPage = () => {
         loading={isLoading}
         refetch={refetch}
         showMarkInProgress
+        showDetailsButton={false}
       />
     </>
   );

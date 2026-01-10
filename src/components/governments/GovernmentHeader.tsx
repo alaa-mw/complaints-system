@@ -34,7 +34,6 @@ const GovernmentHeader: React.FC<Props> = ({
             color="primary"
             variant="outlined"
           />
-          <Chip size="small" label="نشط" color="success" variant="outlined" />
         </Stack>
       }
     />

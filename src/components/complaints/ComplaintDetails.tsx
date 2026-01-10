@@ -32,14 +32,6 @@ import {
   Add,
   Edit,
 } from "@mui/icons-material";
-// import useFetchData from "../hooks/useFetchData";
-// import ComplaintVersions from "./ComplaintVersions";
-// import {
-//   ComplaintDetails as details,
-//   RequestReply,
-// } from "../interfaces/Complaint";
-// import useSendData from "../hooks/useSendData";
-// import { useSnackbar } from "../contexts/SnackbarContext";
 import { io } from "socket.io-client";
 import useFetchData from "../../hooks/useFetchData";
 import ComplaintVersions from "./ComplaintVersions";
@@ -51,7 +43,6 @@ import { useSnackbar } from "../../contexts/SnackbarContext";
 import { baseUrl } from "../../services/api-client";
 import useSendData from "../../hooks/useSendData";
 import getImageUrl from "../../services/image-url";
-// import { baseUrl } from "../services/api-client";
 
 const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const { id } = useParams<{ id: string }>();
@@ -68,6 +59,27 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const [editDescription, setEditDescription] = useState("");
   const [editLocation, setEditLocation] = useState("");
 
+  const {
+    data: complaintDet,
+    isLoading,
+    refetch,
+  } = useFetchData<details>(
+    isAdmin
+      ? `/complaints/complaint-details-for-admin/${id}`
+      : `/complaints/my-complaints-submitted-details/${id}`
+  );
+
+  const [complaintDetails, setComplaintDetails] = useState<details | null>(
+    null
+  );
+
+  // Update state when API data loads
+  useEffect(() => {
+    if (complaintDet) {
+      setComplaintDetails(complaintDet.data);
+    }
+  }, [complaintDet]);
+
   useEffect(() => {
     const socket = io(baseUrl + "/", {
       transports: ["websocket"],
@@ -77,29 +89,33 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
     socket.emit("joinComplaint", id);
 
     // Listen for new comments
-    socket.on("newComment", (data) => {
+    socket.on("newComment", (data: details) => {
       console.log("New comment received:", data);
-      // Update your state here
-    });
 
+      setComplaintDetails((prev) => {
+        if (!prev) return data;
+
+        // If comments array exists, append new comment
+        if (prev.requestsAndReplies && data.requestsAndReplies) {
+          return {
+            ...prev,
+            requestsAndReplies: [...data.requestsAndReplies],
+          };
+        }
+        // Otherwise merge the updates
+        return { ...prev, ...data };
+      });
+    });
     return () => {
+      console.log("Disconnecting socket...");
       socket.disconnect();
     };
   }, [id]);
 
-  const {
-    data: complaintDetails,
-    isLoading,
-    refetch,
-  } = useFetchData<details>(
-    isAdmin
-      ? `/complaints/complaint-details-for-admin/${id}`
-      : `/complaints/my-complaints-submitted-details/${id}`
-  );
-
   const { data: complaintVersions } = useFetchData<details>(
     `/complaints/get-complaint-with-versions/${id}`
   );
+  console.log("complaintVersions", complaintVersions);
 
   const { mutate: addRequest, isPending: isAddingRequest } = useSendData<any>(
     `/complaint-comments/info-request`
@@ -114,8 +130,8 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
     useSendData<any>(`/complaints/update-complaint/${id || ""}`);
 
   const openEditDialog = () => {
-    setEditDescription(complaint?.description || "");
-    setEditLocation(complaint?.location || "");
+    setEditDescription(complaintDetails?.description || "");
+    setEditLocation(complaintDetails?.location || "");
     setEditDialogOpen(true);
   };
 
@@ -139,8 +155,6 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
       }
     );
   };
-
-  const complaint = complaintDetails?.data;
 
   const handleAddRequest = () => {
     if (requestText.trim() && id) {
@@ -308,96 +322,6 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
     </Paper>
   );
 
-  // Add Request Dialog
-  // const RequestDialog = () => (
-  //   <Dialog
-  //     open={requestDialogOpen}
-  //     onClose={() => setRequestDialogOpen(false)}
-  //     maxWidth="sm"
-  //     fullWidth
-  //   >
-  //     <DialogTitle>
-  //       <Box display="flex" alignItems="center" gap={1}>
-  //         <Chat />
-  //         إضافة طلب معلومات جديد
-  //       </Box>
-  //     </DialogTitle>
-  //     <DialogContent>
-  //       <TextField
-  //         // autoFocus
-  //         multiline
-  //         rows={4}
-  //         fullWidth
-  //         placeholder="اكتب طلب المعلومات هنا..."
-  //         value={requestText}
-  //         onChange={(e) => setRequestText(e.target.value)}
-  //         sx={{ mt: 2 }}
-  //       />
-  //     </DialogContent>
-  //     <DialogActions>
-  //       <Button
-  //         onClick={() => setRequestDialogOpen(false)}
-  //         disabled={isAddingRequest}
-  //       >
-  //         إلغاء
-  //       </Button>
-  //       <Button
-  //         onClick={handleAddRequest}
-  //         variant="contained"
-  //         disabled={!requestText.trim() || isAddingRequest}
-  //         startIcon={isAddingRequest ? <CircularProgress size={16} /> : <Add />}
-  //       >
-  //         {isAddingRequest ? "جاري الإضافة..." : "إضافة الطلب"}
-  //       </Button>
-  //     </DialogActions>
-  //   </Dialog>
-  // );
-
-  // Add Note Dialog
-  // const NoteDialog = () => (
-  //   <Dialog
-  //     open={noteDialogOpen}
-  //     onClose={() => setNoteDialogOpen(false)}
-  //     maxWidth="sm"
-  //     fullWidth
-  //   >
-  //     <DialogTitle>
-  //       <Box display="flex" alignItems="center" gap={1}>
-  //         <Note />
-  //         إضافة ملاحظة موظف جديدة
-  //       </Box>
-  //     </DialogTitle>
-  //     <DialogContent>
-  //       <TextField
-  //         autoFocus
-  //         multiline
-  //         rows={4}
-  //         fullWidth
-  //         placeholder="اكتب ملاحظتك هنا..."
-  //         value={noteText}
-  //         onChange={(e) => setNoteText(e.target.value)}
-  //         sx={{ mt: 2 }}
-  //       />
-  //     </DialogContent>
-  //     <DialogActions>
-  //       <Button
-  //         onClick={() => setNoteDialogOpen(false)}
-  //         disabled={isAddingNote}
-  //       >
-  //         إلغاء
-  //       </Button>
-  //       <Button
-  //         onClick={handleAddNote}
-  //         variant="contained"
-  //         disabled={!noteText.trim() || isAddingNote}
-  //         startIcon={isAddingNote ? <CircularProgress size={16} /> : <Add />}
-  //       >
-  //         {isAddingNote ? "جاري الإضافة..." : "إضافة الملاحظة"}
-  //       </Button>
-  //     </DialogActions>
-  //   </Dialog>
-  // );
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
@@ -415,7 +339,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
             تفاصيل الشكوى
           </Typography>
           <Typography variant="h6" color="primary" fontWeight="bold">
-            رقم المرجع: {complaint?.reference_number}
+            رقم المرجع: {complaintDetails?.reference_number}
           </Typography>
         </Box>
         {/* Edit button */}
@@ -425,7 +349,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
               variant="outlined"
               startIcon={<Edit />}
               onClick={openEditDialog}
-              disabled={!complaint}
+              disabled={!complaintDetails}
             >
               تعديل الشكوى
             </Button>
@@ -433,9 +357,9 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         )}
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} >
         {/* Complaint Details Card */}
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Card elevation={3}>
             <CardContent>
               <Typography
@@ -453,8 +377,10 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     الحالة
                   </Typography>
                   <Chip
-                    label={complaint?.status}
-                    color={getStatusColor(complaint?.status || "") as any}
+                    label={complaintDetails?.status}
+                    color={
+                      getStatusColor(complaintDetails?.status || "") as any
+                    }
                     sx={{ mt: 0.5 }}
                   />
                 </Box>
@@ -464,7 +390,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     الاصدار الحالي
                   </Typography>
                   <Typography variant="body1">
-                    {complaint?.version ?? "-"}
+                    {complaintDetails?.version ?? "-"}
                   </Typography>
                 </Box>
 
@@ -477,7 +403,9 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     <LocationOn fontSize="small" />
                     الموقع
                   </Typography>
-                  <Typography variant="body1">{complaint?.location}</Typography>
+                  <Typography variant="body1">
+                    {complaintDetails?.location}
+                  </Typography>
                 </Box>
 
                 <Box>
@@ -490,7 +418,7 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     تاريخ الإنشاء
                   </Typography>
                   <Typography variant="body1">
-                    {formatDate(complaint?.created_at || "")}
+                    {formatDate(complaintDetails?.created_at || "")}
                   </Typography>
                 </Box>
 
@@ -499,84 +427,44 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     الوصف
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, lineHeight: 1.6 }}>
-                    {complaint?.description}
+                    {complaintDetails?.description}
                   </Typography>
                 </Box>
 
-                {complaint?.attachments &&
-                  complaint?.attachments.length > 0 && (
+                {complaintDetails?.attachments &&
+                  complaintDetails?.attachments.length > 0 && (
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">
                         المرفقات
                       </Typography>
                       <Stack spacing={0.5} mt={0.5}>
-                        {complaint.attachments.map((attachment, index) => (
-                          <Button
-                            key={index}
-                            variant="outlined"
-                            size="small"
-                            component="a"
-                            href={
-                              (attachment.file_type === "image"
-                                ? attachment.file_path
-                                : getImageUrl(attachment.file_path))
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            المرفق {index + 1}
-                          </Button>
-                        ))}
+                        {complaintDetails.attachments.map(
+                          (attachment, index) => (
+                            <Button
+                              key={index}
+                              variant="outlined"
+                              size="small"
+                              component="a"
+                              href={
+                                attachment.file_type === "image"
+                                  ? attachment.file_path
+                                  : getImageUrl(attachment.file_path)
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              المرفق {index + 1}
+                            </Button>
+                          )
+                        )}
                       </Stack>
                     </Box>
                   )}
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
-
-        {/* Requests and Replies Section */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card elevation={3}>
-            <CardContent>
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                >
-                  <Chat />
-                  الطلبات والردود ({complaint?.requestsAndReplies?.length || 0})
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={() => setRequestDialogOpen(true)}
-                >
-                  إضافة طلب
-                </Button>
-              </Box>
-
-              <Box sx={{ maxHeight: 600, overflow: "auto" }}>
-                {!complaint?.requestsAndReplies ||
-                complaint.requestsAndReplies.length === 0 ? (
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    لا توجد طلبات أو ردود
-                  </Alert>
-                ) : (
-                  complaint.requestsAndReplies.map((message) => (
-                    <MessageItem key={message.id} message={message} />
-                  ))
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Employee Notes Section - Always show this card */}
+          
+        {/* Employee Notes Section - Always show this card */}
           <Card elevation={3} sx={{ mt: 3 }}>
             <CardContent>
               <Box
@@ -590,7 +478,8 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                   sx={{ display: "flex", alignItems: "center", gap: 1 }}
                 >
                   <Note />
-                  ملاحظات الموظفين ({complaint?.employee_notes?.length || 0})
+                  ملاحظات الموظفين (
+                  {complaintDetails?.employee_notes?.length || 0})
                 </Typography>
                 <Button
                   variant="outlined"
@@ -602,13 +491,13 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
               </Box>
 
               <Box sx={{ maxHeight: 400, overflow: "auto" }}>
-                {!complaint?.employee_notes ||
-                complaint.employee_notes.length === 0 ? (
+                {!complaintDetails?.employee_notes ||
+                complaintDetails.employee_notes.length === 0 ? (
                   <Alert severity="info" sx={{ mt: 2 }}>
                     لا توجد ملاحظات
                   </Alert>
                 ) : (
-                  complaint.employee_notes.map((note) => (
+                  complaintDetails.employee_notes.map((note) => (
                     <MessageItem key={note.id} message={note} />
                   ))
                 )}
@@ -616,6 +505,54 @@ const ComplaintDetails = ({ isAdmin = false }: { isAdmin?: boolean }) => {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* <Grid size={{ xs: 12, md: 4 }}> */}
+          
+        {/* </Grid> */}
+
+        {/* Requests and Replies Section */}
+        <Grid size={{ xs: 12, md: 7}}>
+          <Card elevation={3}>
+            <CardContent>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  <Chat />
+                  الطلبات والردود (
+                  {complaintDetails?.requestsAndReplies?.length || 0})
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setRequestDialogOpen(true)}
+                >
+                  إضافة طلب
+                </Button>
+              </Box>
+
+              <Box sx={{ maxHeight: 600, overflow: "auto" }}>
+                {!complaintDetails?.requestsAndReplies ||
+                complaintDetails.requestsAndReplies.length === 0 ? (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    لا توجد طلبات أو ردود
+                  </Alert>
+                ) : (
+                  complaintDetails.requestsAndReplies.map((message) => (
+                    <MessageItem key={message.id} message={message} />
+                  ))
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Versions Section - Add below the details card */}
         {isAdmin && (
           <Grid size={{ xs: 12, md: 12 }}>

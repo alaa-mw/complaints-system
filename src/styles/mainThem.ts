@@ -7,7 +7,7 @@ declare module '@mui/material/styles' {
       secondary: string;
       tertiary: string;
     };
-    tertiary: Palette['primary']; // Add tertiary to main palette
+    tertiary?: Palette['primary']; // Add tertiary to main palette
     snackbar: { 
       success: string;
       error: string;
@@ -21,7 +21,7 @@ declare module '@mui/material/styles' {
       secondary?: string;
       tertiary?: string;
     };
-    tertiary: Palette['primary']; // Add tertiary to main palette
+    tertiary?: Palette['primary']; // Add tertiary to main palette
     snackbar?: { 
       success: string;
       error: string;

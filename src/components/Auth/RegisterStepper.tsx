@@ -43,7 +43,7 @@ const RegisterStepper = () => {
           maxWidth: 400,
           p: 4,
           mt: 1,
-          backgroundColor: "white",
+          // backgroundColor: "white",
           borderRadius: 2,
           border: `1px solid ${theme.palette.tertiary?.main || "#ccc"}`,
         }}

@@ -46,7 +46,7 @@ const EmployeesComplaintsTable: React.FC<Props> = ({ start, end }) => {
   const items = data?.data || [];
 
   return (
-    <Card elevation={0}>
+    <Card elevation={3}>
       <CardContent>
         <Box
           display="flex"

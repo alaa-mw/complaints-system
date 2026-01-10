@@ -93,4 +93,10 @@ export interface ComplaintVersion {
   version: number;
   changed_at: string;
   attachments: Attachment[];
+  changedBy: {
+                    id: number;
+                    full_name: string;
+                    
+                };
+
 }

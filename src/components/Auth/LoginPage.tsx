@@ -83,9 +83,9 @@ const LoginPage = () => {
         maxWidth: 400,
         p: 4,
         mt: 1,
-        backgroundColor: "white",
+        // backgroundColor: "white",
         borderRadius: 2,
-        border: `1px solid ${theme.palette.tertiary.main}`,
+        border: `1px solid ${theme.palette?.tertiary?.main}`,
       }}
     >
       <Box sx={{ textAlign: "center", mb: 3 }}>

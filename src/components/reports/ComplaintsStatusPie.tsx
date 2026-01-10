@@ -63,8 +63,8 @@ const ComplaintsStatusPie: React.FC<ComplaintsStatusPieProps> = ({
   const COLORS = ["#92e895ff", "#ffbe5cff", "#f77e75ff", "#76aedcff", "#d582e4ff"];
 
   return (
-    <Card elevation={0}>
-      <CardContent sx={{ width: "400px" }}>
+    <Card elevation={3} sx={{flexGrow:1}}>
+      <CardContent sx={{ maxWidth: "400px" }}>
         <Box
           display="flex"
           justifyContent="space-between"

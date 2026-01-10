@@ -33,6 +33,7 @@ import { useSnackbar } from "../../contexts/SnackbarContext";
 import { formatDate } from "../../utils/formatDate";
 import useSendData from "../../hooks/useSendData";
 import { useNavigate } from "react-router-dom";
+import SkeletonTableRow from "../common/SkeletonTableRow";
 
 interface Account {
   id: number;
@@ -61,7 +62,7 @@ const AccountsTable: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
   const { showSnackbar } = useSnackbar();
-  const navigate= useNavigate();
+  const navigate = useNavigate();
 
   const { data, isLoading, refetch, setQueryParams } =
     useFetchDataWithParams<AccountsPaginationResponse>("/users/all-users", {
@@ -171,6 +172,7 @@ const AccountsTable: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
+          {isLoading && <SkeletonTableRow cellCount={7} rowCount={5} />}
           {data?.data.data.map((account) => (
             <TableRow key={account.id} hover>
               <TableCell>
@@ -238,6 +240,7 @@ const AccountsTable: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
+          {isLoading && <SkeletonTableRow cellCount={7} rowCount={5} />}
           {data?.data.data.map((account) => (
             <TableRow key={account.id} hover>
               <TableCell>
@@ -288,24 +291,11 @@ const AccountsTable: React.FC = () => {
     </TableContainer>
   );
 
-  if (isLoading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight={200}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Card elevation={0} sx={{ background: "transparent" }}>
       <CardContent>
         <Box
-          display={{sx:"list-item" ,md:"flex"}}
+          display={{ sx: "list-item", md: "flex" }}
           justifyContent="space-between"
           alignItems="center"
           mb={3}
@@ -337,11 +327,11 @@ const AccountsTable: React.FC = () => {
               تحديث
             </Button>
             <Button
-            variant="contained"
+              variant="contained"
               startIcon={<Add />}
               onClick={() => navigate("add")}
             >
-              إضافة حساب 
+              إضافة حساب
             </Button>
           </Stack>
         </Box>

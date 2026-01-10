@@ -52,7 +52,7 @@ const ComplaintsTimeStats: React.FC<{ year?: number; height?: number }> = ({
   height = 320,
 }) => {
   const [granularity, setGranularity] = useState<Granularity>("monthly");
-  const { data, isLoading, isError, refetch, setQueryParams } =
+  const { data1, isLoading, isError, refetch, setQueryParams } =
     useFetchDataWithParams<ReportResponse>(
       "/complaints/reports/complaint-stats",
       {
@@ -60,6 +60,62 @@ const ComplaintsTimeStats: React.FC<{ year?: number; height?: number }> = ({
       }
     );
 
+  const data = {
+    data: {
+      daily: [
+        {
+          date: "2026-01-08",
+          count: "7",
+        },
+        {
+          date: "2026-01-09",
+          count: "14",
+        },
+        {
+          date: "2026-01-10",
+          count: "9",
+        },
+        {
+          date: "2026-02-08",
+          count: "7",
+        },
+        {
+          date: "2026-02-09",
+          count: "14",
+        },
+        {
+          date: "2026-03-10",
+          count: "9",
+        },
+        {
+          date: "2026-03-11",
+          count: "7",
+        },
+        {
+          date: "2026-04-09",
+          count: "14",
+        },
+        {
+          date: "2026-05-10",
+          count: "9",
+        },
+      ],
+      weekly: [
+        {
+          week: "2026-01-05",
+          count: "30",
+        },
+      ],
+      monthly: [
+        {
+          month: "2026-01",
+          count: "30",
+        },
+      ],
+    },
+    message: "complaints",
+    status: "success",
+  };
   console.log("ComplaintsTimeStats data:", data);
   useEffect(() => {
     setQueryParams((p) => ({ ...(p || {}), year }));
@@ -77,7 +133,7 @@ const ComplaintsTimeStats: React.FC<{ year?: number; height?: number }> = ({
       : monthly.map((m) => ({ name: m.month, value: Number(m.count) || 0 }));
 
   return (
-    <Card elevation={0}>
+    <Card elevation={3}>
       <CardContent>
         <Box
           display="flex"

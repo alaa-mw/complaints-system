@@ -33,12 +33,17 @@ const EmployeeListItem: React.FC<Props> = ({
   return (
     <ListItem
       sx={{
-        mx:2,
         py: 1.5,
         "&:hover": { bgcolor: "action.hover" },
         transition: "background-color 0.2s",
+        // move the built-in secondaryAction to the left side
+        "& .MuiListItemSecondaryAction-root": {
+          right: "auto",
+          left: 8,
+        },
       }}
       secondaryAction={
+        // make on left side
         <Stack direction="row" spacing={1} alignItems="center">
           <Tooltip title="إرسال بريد">
             <IconButton edge="end" size="small">

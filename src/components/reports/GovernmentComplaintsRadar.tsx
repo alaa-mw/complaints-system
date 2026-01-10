@@ -61,7 +61,7 @@ const GovernmentComplaintsRadar: React.FC<Props> = ({
   }));
 
   return (
-    <Card elevation={0}>
+    <Card elevation={3}>
       <CardContent>
         <Box
           display="flex"

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   Box,
@@ -11,14 +12,22 @@ import {
   Card,
   CardContent,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
 import { PersonAdd, Save, Clear } from "@mui/icons-material";
 import useSendData from "../../hooks/useSendData";
+import useFetchData from "../../hooks/useFetchData";
+import { Government } from "../GovernementToolbar";
 
 interface EmployeeFormData {
   full_name: string;
   email: string;
   phone_number: string;
+  governmentId: string;
 }
 
 interface EmployeeResponse {
@@ -35,6 +44,7 @@ const AddEmployeeForm: React.FC = () => {
     full_name: "",
     email: "",
     phone_number: "",
+    governmentId: '',
   });
 
   const [errors, setErrors] = useState<Partial<EmployeeFormData>>({});
@@ -49,6 +59,9 @@ const AddEmployeeForm: React.FC = () => {
     error,
     isSuccess,
   } = useSendData<EmployeeResponse>("/authentication/employees");
+
+  const { data: governmentList } =
+    useFetchData<Government[]>("/government/all");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -66,7 +79,7 @@ const AddEmployeeForm: React.FC = () => {
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (e: React.FocusEvent<any>) => {
     const { name } = e.target;
     setTouched((prev) => ({
       ...prev,
@@ -100,6 +113,11 @@ const AddEmployeeForm: React.FC = () => {
       newErrors.phone_number = "رقم الهاتف يجب أن يكون على الأقل 7 أرقام";
     }
 
+    // Validate government selection
+    if (!formData.governmentId) {
+      newErrors.governmentId = "المحافظة مطلوبة";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -112,6 +130,7 @@ const AddEmployeeForm: React.FC = () => {
       full_name: true,
       email: true,
       phone_number: true,
+      governmentId: true,
     });
 
     if (validateForm()) {
@@ -133,6 +152,7 @@ const AddEmployeeForm: React.FC = () => {
       full_name: "",
       email: "",
       phone_number: "",
+      governmentId: "",
     });
     setErrors({});
     setTouched({});
@@ -233,6 +253,31 @@ const AddEmployeeForm: React.FC = () => {
                     pattern: "[0-9]*",
                   }}
                 />
+              </Grid>
+
+              {/* Government Select */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <FormControl fullWidth error={!!getFieldError("governmentId")}>
+                  <InputLabel>الجهة الحكومية</InputLabel>
+                  <Select
+                    label="الجهة الحكومية"
+                    name="governmentId"
+                    value={formData.governmentId}
+                    onChange={(e) => handleChange(e as any)}
+                    onBlur={handleBlur}
+                    disabled={isPending || !governmentList}
+                  >
+                    <MenuItem value="">اختر الجهة الحكومية</MenuItem>
+                    {governmentList?.data.map((gov) => (
+                      <MenuItem key={gov.id} value={gov.id}>
+                        {gov.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    {getFieldError("governmentId")}
+                  </FormHelperText>
+                </FormControl>
               </Grid>
 
               {/* Action Buttons */}

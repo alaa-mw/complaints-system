@@ -28,11 +28,11 @@ export const sidebarData = {
   
     ],
     employee:[ 
-        {
-            title: 'الرئيسية',
-            path:"/",
-            icon: HomeIcon,
-        },
+        // {
+        //     title: 'الرئيسية',
+        //     path:"/",
+        //     icon: HomeIcon,
+        // },
         {
             title:  'الشكاوي الواردة',
             path:"/complaints",

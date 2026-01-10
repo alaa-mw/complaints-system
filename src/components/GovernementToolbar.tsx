@@ -37,11 +37,12 @@ const GovernmentToolbar = ({
   // Filter governments based on search term
   const filteredGovernments = useMemo(() => {
     if (!internalSearch.trim()) return governments;
-    
+
     const searchLower = internalSearch.toLowerCase();
-    return governments.filter(gov => 
-      gov.name.toLowerCase().includes(searchLower) ||
-      gov.description.toLowerCase().includes(searchLower)
+    return governments.filter(
+      (gov) =>
+        gov.name.toLowerCase().includes(searchLower) ||
+        gov.description.toLowerCase().includes(searchLower)
     );
   }, [governments, internalSearch]);
 
@@ -54,15 +55,26 @@ const GovernmentToolbar = ({
   };
 
   return (
-    <Card sx={{ p: 2, borderRadius: 3, boxShadow: 3, mb: 3 }}>
+    <Card
+      sx={{
+        p: 2,
+        borderRadius: 3,
+        boxShadow: 3,
+        mb: 3,
+        width: { xs: "90vw", md: "auto" },
+      }}
+    >
       <Box sx={{ mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.dark, mb: 1 }}>
-          المحافظات
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: theme.palette.primary.dark, mb: 1 }}
+        >
+          الجهات الحكومية
         </Typography>
-        
+
         {/* Search Bar */}
         <TextField
-          placeholder="ابحث عن محافظة..."
+          placeholder="ابحث عن جهة..."
           value={internalSearch}
           onChange={handleSearchChange}
           variant="outlined"
@@ -96,21 +108,21 @@ const GovernmentToolbar = ({
         />
 
         {/* Government Cards */}
-        <Stack 
-          direction="row" 
-          spacing={1} 
-          sx={{ 
-            overflowX: "auto", 
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            overflowX: "auto",
             p: 1,
             minHeight: 100,
-            '&::-webkit-scrollbar': {
+            "&::-webkit-scrollbar": {
               height: 6,
             },
-            '&::-webkit-scrollbar-track': {
+            "&::-webkit-scrollbar-track": {
               backgroundColor: theme.palette.grey[100],
               borderRadius: 3,
             },
-            '&::-webkit-scrollbar-thumb': {
+            "&::-webkit-scrollbar-thumb": {
               backgroundColor: theme.palette.grey[400],
               borderRadius: 3,
             },
@@ -121,17 +133,17 @@ const GovernmentToolbar = ({
             id="all"
             selectedId={selectedGovernment}
             onClick={onGovernmentChange}
-            title="كل المحافظات"
-            description="عرض جميع المحافظات"
+            title="كل الجهات"
+            description="عرض جميع الجهات"
           />
-          
+
           {/* No Government Option */}
           <GovernmentCard
             id="none"
             selectedId={selectedGovernment}
             onClick={onGovernmentChange}
             title="غير محدد"
-            description="بدون محافظة"
+            description="بدون جهة"
           />
 
           {/* Filtered Government Cards */}
@@ -179,12 +191,12 @@ interface GovernmentCardProps {
   description?: string;
 }
 
-const GovernmentCard = ({ 
-  id, 
-  selectedId, 
-  onClick, 
-  title, 
-  description 
+const GovernmentCard = ({
+  id,
+  selectedId,
+  onClick,
+  title,
+  description,
 }: GovernmentCardProps) => {
   const isSelected = selectedId === id;
 
@@ -195,7 +207,7 @@ const GovernmentCard = ({
       sx={{
         minWidth: 160,
         maxWidth: 200,
-        height:80,
+        height: 80,
         p: 2,
         display: "flex",
         flexDirection: "column",
@@ -217,9 +229,9 @@ const GovernmentCard = ({
         },
       }}
     >
-      <Typography 
-        variant="subtitle2" 
-        sx={{ 
+      <Typography
+        variant="subtitle2"
+        sx={{
           fontWeight: 600,
           textAlign: "right",
           color: isSelected ? theme.palette.primary.dark : "text.primary",
@@ -229,11 +241,11 @@ const GovernmentCard = ({
       >
         {title}
       </Typography>
-      
+
       {description && (
-        <Typography 
-          variant="caption" 
-          sx={{ 
+        <Typography
+          variant="caption"
+          sx={{
             textAlign: "right",
             color: "text.secondary",
             lineHeight: 1.4,
@@ -248,7 +260,7 @@ const GovernmentCard = ({
           {description}
         </Typography>
       )}
-      
+
       {/* Selection Indicator */}
       {isSelected && (
         <Box

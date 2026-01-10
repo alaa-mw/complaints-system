@@ -38,6 +38,7 @@ import { getStatusColor } from "../../utils/getStatusColor";
 import { formatDate } from "../../utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import ChangeStatusButton from "./ChangeStatusButton";
+import SkeletonTableRow from "../common/SkeletonTableRow";
 
 interface ComplaintsTableProps {
   complaints: Complaint[];
@@ -45,6 +46,7 @@ interface ComplaintsTableProps {
   refetch: () => void;
   showMarkInProgress?: boolean;
   showChangeStatus?: boolean;
+  showDetailsButton?: boolean;
 }
 const ComplaintsTable = ({
   complaints,
@@ -52,6 +54,7 @@ const ComplaintsTable = ({
   refetch,
   showMarkInProgress = false,
   showChangeStatus = false,
+  showDetailsButton = true,
 }: ComplaintsTableProps) => {
   const theme = useTheme();
 
@@ -61,10 +64,11 @@ const ComplaintsTable = ({
   const ViewVersions = ({ complaintId }: { complaintId: number }) => {
     const navigate = useNavigate();
     return (
-      <Tooltip title="عرض التفاصيل">
+      <Tooltip title="عرض التفاصيل" >
         <IconButton
           size="small"
           color="primary"
+          disabled={showDetailsButton === false}
           onClick={() => navigate(`${complaintId}`)}
         >
           <Visibility />
@@ -148,10 +152,7 @@ const ComplaintsTable = ({
                 <ChangeStatusButton complaintId={complaint.id} />
               )}
               {showChangeStatus && (
-                <ChangeStatusButton
-                  complaintId={complaint.id}
-                  chooseStatus
-                />
+                <ChangeStatusButton complaintId={complaint.id} chooseStatus />
               )}
             </Box>
           </Box>
@@ -162,7 +163,7 @@ const ComplaintsTable = ({
 
   // Tablet-optimized Table View
   const TabletTableView = () => (
-    <TableContainer component={Paper} elevation={1} sx={{ maxHeight: "70vh" }}>
+    <TableContainer component={Paper} elevation={1} sx={{  width: '800px' }}>
       <Table stickyHeader aria-label="complaints table" size="small">
         <TableHead>
           <TableRow>
@@ -184,6 +185,7 @@ const ComplaintsTable = ({
           </TableRow>
         </TableHead>
         <TableBody>
+          {loading && <SkeletonTableRow cellCount={5} rowCount={5} />}
           {complaints?.map((complaint) => (
             <TableRow key={complaint.id} hover>
               <TableCell>
@@ -233,12 +235,12 @@ const ComplaintsTable = ({
                   {showMarkInProgress && (
                     <ChangeStatusButton complaintId={complaint.id} />
                   )}
-                   {showChangeStatus && (
-                <ChangeStatusButton
-                  complaintId={complaint.id}
-                chooseStatus
-                />
-              )}
+                  {showChangeStatus && (
+                    <ChangeStatusButton
+                      complaintId={complaint.id}
+                      chooseStatus
+                    />
+                  )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -250,7 +252,7 @@ const ComplaintsTable = ({
 
   // Desktop Full Table View
   const DesktopTableView = () => (
-    <TableContainer component={Paper} elevation={2} sx={{ maxHeight: "70vh" }}>
+    <TableContainer component={Paper} elevation={2} sx={{ width: '1200px' }}> 
       <Table stickyHeader aria-label="complaints table">
         <TableHead>
           <TableRow>
@@ -281,6 +283,7 @@ const ComplaintsTable = ({
           </TableRow>
         </TableHead>
         <TableBody>
+          {loading && <SkeletonTableRow cellCount={8} rowCount={5} />}
           {complaints?.map((complaint) => (
             <TableRow key={complaint.id} hover>
               <TableCell>
@@ -346,12 +349,12 @@ const ComplaintsTable = ({
                   {showMarkInProgress && (
                     <ChangeStatusButton complaintId={complaint.id} />
                   )}
-                   {showChangeStatus && (
-                <ChangeStatusButton
-                  complaintId={complaint.id}
-                  chooseStatus
-                />
-              )}
+                  {showChangeStatus && (
+                    <ChangeStatusButton
+                      complaintId={complaint.id}
+                      chooseStatus
+                    />
+                  )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -360,19 +363,6 @@ const ComplaintsTable = ({
       </Table>
     </TableContainer>
   );
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight={200}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Card elevation={0} sx={{ background: "transparent" }}>
